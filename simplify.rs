@@ -7,7 +7,7 @@ fn getSquareDistance(p1: Point, p2: Point) -> float {
 	let dx : float = p1.x - p2.x;
 	let dy : float = p1.y - p2.y;
 	return dx * dx + dy * dy;
-	}
+}
 	
 fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 	let mut dxy = Point { x: p2.x - p1.x, y: p2.y-p1.x};
@@ -25,6 +25,30 @@ fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 	dxy = Point {x: (p.x - xy.x), y: (p.y - xy.y)};
 	return dxy.x * dxy.x + dxy.x * dxy.y;
 }
+fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{ 
+	let mut i : uint = 1u;
+	let len : uint = points.len();
+	let mut prevPoint : Point = points[0u];
+	let mut newPoints : ~[Point] = ~[prevPoint];
+	let mut point : Point = points[i];
+	loop {
+		if (getSquareDistance(point, prevPoint) > sqTolerance) {
+			newPoints.push(point);
+			prevPoint = point;
+		}
+		i+=1;
+		if (i < len) {
+			point = points[i];
+		}else{
+			break;
+		}
+	}
+	if (prevPoint.x != point.x && prevPoint.y != point.y) {
+		newPoints.push(point);
+	}
+	return newPoints;
+}
+
 
 fn main() {
 	io::println(fmt!("%f",getSquareDistance(Point { x : 1.0, y: 1.0}, Point { x : 3.0, y : 3.0})));
