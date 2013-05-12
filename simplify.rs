@@ -1,3 +1,7 @@
+extern mod std;
+use json = std::json;
+use Json = std::json::Json;
+
 struct Point {
 	x: float,
 	y: float
@@ -48,8 +52,60 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	return newPoints;
 }
-
-
+fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float) -> ~[Point]{
+	let len : uint = points.len();
+	let mut markers : ~[uint] = ~[];
+	let mut first : uint = 0u;
+	let mut last : uint = len - 1u;
+	let mut firstStack : ~[uint] = ~[];
+	let mut lastStack : ~[uint] = ~[];
+	let mut newPoints : ~[Point] = ~[];
+	markers[first] = 1u;
+	markers[last] = 1u;
+	loop {
+		let mut maxSqDist : float = 0.0f;
+		let mut i : uint = first + 1u;
+		let mut index : uint = 0;
+		while (i < last) {
+			let sqDist :float  = getSquareSegmentDistance(
+				points[i], 
+				points[first], 
+				points[last]
+			);
+			if (sqDist > maxSqDist) {
+				index = i;
+				maxSqDist = sqDist;
+			}
+			i += 1;
+		}
+		if (maxSqDist > sqTolerance) {
+			markers[index] = 1u;
+			firstStack.push(first);
+			lastStack.push(index);
+			firstStack.push(index);
+			lastStack.push(last);
+		}
+		if(firstStack.len()>0u && lastStack.len()>0u){
+			first = firstStack.pop();
+			last = lastStack.pop();
+		}else{
+			break;
+		};
+	};
+	markers.eachi(|j,marker|{
+		if(*marker==1u){
+			newPoints.push(points[j]);
+		};
+		true
+	});
+	return newPoints;
+}
 fn main() {
-	io::println(fmt!("%f",getSquareDistance(Point { x : 1.0, y: 1.0}, Point { x : 3.0, y : 3.0})));
+	let reader = io::stdin();
+	match json::from_reader(reader){
+		Ok(List(points))=>{
+			io::println(fmt!("%?",points));
+		}
+		Err(e)=>io::println(fmt!("%?",e))
+	}
 }
