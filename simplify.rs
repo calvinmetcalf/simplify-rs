@@ -1,7 +1,8 @@
 extern mod std;
 use json = std::json;
 use Json = std::json::Json;
-
+use List = std::json::List;
+use Number = std::json::Number;
 struct Point {
 	x: float,
 	y: float
@@ -100,12 +101,26 @@ fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float) -> ~[Point]{
 	});
 	return newPoints;
 }
+fn dealList(l:~[Json])->~[Point]{
+	l.map(|b|{
+		match *b{
+			List([Number(x),Number(y)])=>Point{x:x,y:y},
+			_=>Point{x:0.0,y:0.0}
+		}
+	})
+}
+
+fn dealJson (j:Json)->~[Point]{
+	match j{
+		List(l)=> dealList(l),
+	_=>~[Point{x:0.0,y:0.0}]
+	}
+}
+
 fn main() {
 	let reader = io::stdin();
 	match json::from_reader(reader){
-		Ok(List(points))=>{
-			io::println(fmt!("%?",points));
-		}
+		Ok(points)=> io::println(fmt!("from %?",dealJson(points))),
 		Err(e)=>io::println(fmt!("%?",e))
 	}
 }
