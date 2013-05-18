@@ -53,9 +53,14 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	return newPoints;
 }
-fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float) -> ~[Point]{
-	let len : uint = points.len();
-	let mut markers : ~[uint] = ~[];
+fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
+	let pts:~[Point]=match hq {
+		true=>points,
+		_=>simplifyRadialDistance(points,sqTolerance)
+	};
+	let len : uint = vec::len(pts);
+	io::println(fmt!("len:%?",len));
+	let mut markers : ~[uint] = ~[0u, ..0x1000000];
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
 	let mut firstStack : ~[uint] = ~[];
@@ -69,9 +74,9 @@ fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float) -> ~[Point]{
 		let mut index : uint = 0;
 		while (i < last) {
 			let sqDist :float  = getSquareSegmentDistance(
-				points[i], 
-				points[first], 
-				points[last]
+				pts[i], 
+				pts[first], 
+				pts[last]
 			);
 			if (sqDist > maxSqDist) {
 				index = i;
@@ -95,7 +100,7 @@ fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float) -> ~[Point]{
 	};
 	markers.eachi(|j,marker|{
 		if(*marker==1u){
-			newPoints.push(points[j]);
+			newPoints.push(pts[j]);
 		};
 		true
 	});
@@ -120,7 +125,7 @@ fn dealJson (j:Json)->~[Point]{
 fn main() {
 	let reader = io::stdin();
 	match json::from_reader(reader){
-		Ok(points)=> io::println(fmt!("from %?",dealJson(points))),
+		Ok(points)=> io::println(fmt!("from %?",vec::len(simplifyDouglasPeucker(dealJson(points),0.8f,false)))),
 		Err(e)=>io::println(fmt!("%?",e))
 	}
 }
