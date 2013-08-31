@@ -1,9 +1,5 @@
-extern mod std;
-use json = std::json;
-use Json = std::json::Json;
-use List = std::json::List;
-use Number = std::json::Number;
-struct Point {
+#[link(name = "simplify", vers = "0.0.1")];
+pub struct Point {
 	x: float,
 	y: float
 }
@@ -53,7 +49,7 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	return newPoints;
 }
-fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
+pub fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
 	let pts:~[Point]=match hq {
 		true=>points,
 		_=>simplifyRadialDistance(points,sqTolerance)
@@ -105,27 +101,4 @@ fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[
 		true
 	});
 	return newPoints;
-}
-fn dealList(l:~[Json])->~[Point]{
-	l.map(|b|{
-		match *b{
-			List([Number(x),Number(y)])=>Point{x:x,y:y},
-			_=>Point{x:0.0,y:0.0}
-		}
-	})
-}
-
-fn dealJson (j:Json)->~[Point]{
-	match j{
-		List(l)=> dealList(l),
-	_=>~[Point{x:0.0,y:0.0}]
-	}
-}
-
-fn main() {
-	let reader = io::stdin();
-	match json::from_reader(reader){
-		Ok(points)=> io::println(fmt!("to %?",vec::len(simplifyDouglasPeucker(dealJson(points),0.8f,false)))),
-		Err(e)=>io::println(fmt!("%?",e))
-	}
 }
