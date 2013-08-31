@@ -1,9 +1,14 @@
-#[link(name = "simplify", vers = "0.0.1")];
+#[link(name = "simplify", vers = "0.0.2")];
+extern mod std;
+use std::json::*;
+
 pub struct Point {
 	x: float,
 	y: float
 }
-
+impl ToJson for Point {
+    fn to_json(&self) -> Json { List(~[self.x.to_json(),self.y.to_json()]) }
+}
 fn getSquareDistance(p1: Point, p2: Point) -> float { 
 	let dx : float = p1.x - p2.x;
 	let dy : float = p1.y - p2.y;
@@ -55,7 +60,6 @@ pub fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -
 		_=>simplifyRadialDistance(points,sqTolerance)
 	};
 	let len : uint = vec::len(pts);
-	io::println(fmt!("from:%?",len));
 	let mut markers : ~[uint] = ~[0u, ..0x1000000];
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
