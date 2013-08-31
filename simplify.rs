@@ -59,7 +59,7 @@ fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[
 		_=>simplifyRadialDistance(points,sqTolerance)
 	};
 	let len : uint = vec::len(pts);
-	io::println(fmt!("len:%?",len));
+	io::println(fmt!("from:%?",len));
 	let mut markers : ~[uint] = ~[0u, ..0x1000000];
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
@@ -125,7 +125,7 @@ fn dealJson (j:Json)->~[Point]{
 fn main() {
 	let reader = io::stdin();
 	match json::from_reader(reader){
-		Ok(points)=> io::println(fmt!("from %?",vec::len(simplifyDouglasPeucker(dealJson(points),0.8f,false)))),
+		Ok(points)=> io::println(fmt!("to %?",vec::len(simplifyDouglasPeucker(dealJson(points),0.8f,false)))),
 		Err(e)=>io::println(fmt!("%?",e))
 	}
 }
