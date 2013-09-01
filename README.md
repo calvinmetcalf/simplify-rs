@@ -5,7 +5,7 @@ rustc --lib simplify.rs
 rustc main.rs -L .
 ```
 
-run with `./main < points.json > lessPoints.json`
+run with `./main points.json lessPoints.json 0.8`
 
 
 
