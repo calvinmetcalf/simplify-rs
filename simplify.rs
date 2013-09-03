@@ -13,35 +13,58 @@ impl Eq for Point {
     fn eq(&self, other: &Point) -> bool { other.x == self.x && other.y == self.y }
     fn ne(&self, other: &Point) -> bool { other.x != self.x || other.y != self.y }
 }
-
-fn getSquareDistance(p1: Point, p2: Point) -> float { 
-	let dx : float = p1.x - p2.x;
-	let dy : float = p1.y - p2.y;
-	return dx * dx + dy * dy;
+impl Sub<Point,Point> for Point {
+    #[inline]
+    fn sub(&self, other: &Point) -> Point { x:self.x-other.x,y:self.y-other.y }
 }
+impl Sub<Point,float> for Point {
+    #[inline]
+    fn sub(&self, other: &float) -> Point { x:self.x - *other , y:self.y - *other }
+}
+impl Add<Point,Point> for Point {
+    #[inline]
+    fn add(&self, other: &Point) -> Point { x:self.x+other.x,y:self.y+other.y }
+}
+impl Add<Point,float> for Point {
+    #[inline]
+    fn add(&self, other: &float) -> Point { x:self.x + *other, y:self.y + *other }
+}
+impl Mul<Point,Point> for Point {
+    #[inline]
+    fn mul(&self, other: &Point) -> Point { x:self.x*other.x,y:self.y*other.y }
+}
+impl Mul<Point,float> for Point {
+    #[inline]
+    fn mul(&self, other: &float) -> Point { x:self.x * *other, y:self.y * *other }
+}
+impl Point {
+    fn sum(&self) -> Float { self.x+self.y }
+    fn sqsum(&self) -> Float { self.x * self.x + self.y * self.y}
+}
+
 fn calcStuff(p:Point,p1:Point,d1:Point)->float {
-	let top : float = (p.x - p1.x) * d1.x + (p.y - p1.y) * d1.y;
-	let bottom : float =  d1.y * d1.y + d1.y * d1.y;
+	let top : float = ((p - p1) * d1).sum();
+	let bottom : float =  d1.sqsum();
 	match bottom{
 		0.0=>0.0,
 		_=>top/bottom
 	}
 }
 fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
-	let d1 = Point { x: p2.x - p1.x, y: p2.y-p1.x};
+	let d1 : Point = p2-p1;
 	let d2 : Point = match d1{
-		Point {x:0.0,_}| Point {y:0.0,_}=> {p1}
+		Point {x:0.0,_} | Point {y:0.0,_}=> {p1}
 		_=>{
 			let t = calcStuff(p,p1,d1);
 			match t {
 				tt if tt>1.0=>p2,
-				tt if tt>0.0=>Point { x: d1.x * tt + p1.x,y: d1.y * tt + p1.y},
+				tt if tt>0.0=> d1*tt+p1,
 				_=>p1
 			}
 		}
 	};
-	let d4 = Point {x: (p.x - d2.x), y: (p.y - d2.y)};
-	return d4.x * d4.x + d4.y * d4.y;
+	let d4 : Point = p-d2;
+	d4.sqsum()
 }
 fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{ 
 	let mut i : uint = 1u;
@@ -52,7 +75,7 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	while i < len {
 		point = points[i];
 		i+=1;
-		if (getSquareDistance(point, prevPoint) > sqTolerance) {
+		if (point - prevPoint).sqsum() > sqTolerance {
 			newPoints.push(point);
 			prevPoint = point;
 		}
