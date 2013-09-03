@@ -5,7 +5,7 @@ use std::json::*;
 
 
 fn dealList(l:~[Json])->~[Point]{
-    io::println(fmt!("from %?",vec::len(l)));
+    io::println(fmt!("from %?",l.len()));
 	l.map(|b|{
 		match *b{
 			List([Number(x),Number(y)])=>Point{x:x,y:y},
@@ -22,7 +22,10 @@ fn dealJson (s:~str)->~[Point]{
 	    _=>~[Point{x:0.0,y:0.0}]
 	}
 }
-
+fn ln( j:~[Point] )->~[Point]{
+    io::println(fmt!("from %?",j.len()));
+    j
+}
 fn writeOut ( j:~[Point] , outPath:~path::Path) {
     io::println(fmt!("to %?",vec::len(j)));
 	match io::buffered_file_writer(outPath) {
@@ -37,10 +40,11 @@ fn main() {
 	let outPath = ~path::Path(args[2]);
 	let simp = match float::from_str(args[3]){
 	    Some(s)=>s,
-	    _=>0.8f
+	    _=>1.0f
 	};
+	
 	match reader{
-		Ok(points)=>  writeOut(simplifyDouglasPeucker(dealJson(points),simp,false),outPath),
+		Ok(points)=>  writeOut(simplifyDouglasPeucker(ln(dealJson(points)),simp,false),outPath),
 		Err(e)=>io::println(fmt!("%?",e))
 	}
 }
