@@ -22,10 +22,6 @@ fn dealJson (s:~str)->~[Point]{
 	    _=>~[Point{x:0.0,y:0.0}]
 	}
 }
-fn ln( j:~[Point] )->~[Point]{
-    io::println(fmt!("from %?",j.len()));
-    j
-}
 fn writeOut ( j:~[Point] , outPath:~path::Path) {
     io::println(fmt!("to %?",vec::len(j)));
 	match io::buffered_file_writer(outPath) {
@@ -44,7 +40,7 @@ fn main() {
 	};
 	
 	match reader{
-		Ok(points)=>  writeOut(simplifyDouglasPeucker(ln(dealJson(points)),simp,false),outPath),
+		Ok(points)=>  writeOut(simplify(dealJson(points),simp,false),outPath),
 		Err(e)=>io::println(fmt!("%?",e))
 	}
 }

@@ -1,4 +1,4 @@
-#[link(name = "simplify", vers = "0.0.3")];
+#[link(name = "simplify", vers = "0.0.4")];
 extern mod std;
 use std::json::*;
 use std::smallintmap::*;
@@ -15,31 +15,23 @@ impl Eq for Point {
 }
 impl Sub<Point,Point> for Point {
     #[inline]
-    fn sub(&self, other: &Point) -> Point { x:self.x-other.x,y:self.y-other.y }
-}
-impl Sub<Point,float> for Point {
-    #[inline]
-    fn sub(&self, other: &float) -> Point { x:self.x - *other , y:self.y - *other }
+    fn sub(&self, other: &Point) -> Point { Point {x:self.x-other.x,y:self.y-other.y} }
 }
 impl Add<Point,Point> for Point {
     #[inline]
-    fn add(&self, other: &Point) -> Point { x:self.x+other.x,y:self.y+other.y }
-}
-impl Add<Point,float> for Point {
-    #[inline]
-    fn add(&self, other: &float) -> Point { x:self.x + *other, y:self.y + *other }
+    fn add(&self, other: &Point) -> Point { Point { x:self.x+other.x,y:self.y+other.y }}
 }
 impl Mul<Point,Point> for Point {
     #[inline]
-    fn mul(&self, other: &Point) -> Point { x:self.x*other.x,y:self.y*other.y }
+    fn mul(&self, other: &Point) -> Point { Point { x:self.x*other.x,y:self.y*other.y }}
 }
-impl Mul<Point,float> for Point {
-    #[inline]
-    fn mul(&self, other: &float) -> Point { x:self.x * *other, y:self.y * *other }
-}
+
 impl Point {
-    fn sum(&self) -> Float { self.x+self.y }
-    fn sqsum(&self) -> Float { self.x * self.x + self.y * self.y}
+    fn sum(&self) -> float { self.x+self.y }
+    fn sqsum(&self) -> float { self.x * self.x + self.y * self.y}
+    fn sub(&self, other: float) -> Point { Point { x:self.x - other , y:self.y - other }}
+    fn mul(&self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
+    fn add(&self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
 }
 
 fn calcStuff(p:Point,p1:Point,d1:Point)->float {
@@ -55,10 +47,10 @@ fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 	let d2 : Point = match d1{
 		Point {x:0.0,_} | Point {y:0.0,_}=> {p1}
 		_=>{
-			let t = calcStuff(p,p1,d1);
+			let t : float = calcStuff(p,p1,d1);
 			match t {
 				tt if tt>1.0=>p2,
-				tt if tt>0.0=> d1*tt+p1,
+				tt if tt>0.0=> d1.mul(tt)+p1,
 				_=>p1
 			}
 		}
@@ -83,16 +75,10 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	if (prevPoint!= point) {
 		newPoints.push(point);
 	}
-	return newPoints;
+	newPoints
 }
-pub fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
-	let tolerance : float = sqTolerance*sqTolerance;
-	let pts:~[Point]=match hq {
-		true=>points,
-		_=>simplifyRadialDistance(points,tolerance)
-	};
-	io::println(fmt!("in2 %?",pts.len()));
-	let len : uint = pts.len();
+fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
+	let len : uint = points.len();
 	let mut markers = SmallIntMap::new();
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
@@ -108,9 +94,9 @@ pub fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -
 		while (i < last) {
 			
 			let sqDist :float  = getSquareSegmentDistance(
-				pts[i], 
-				pts[first], 
-				pts[last]
+				points[i], 
+				points[first], 
+				points[last]
 			);
 			if (sqDist > maxSqDist) {
 				index = i;
@@ -133,8 +119,17 @@ pub fn simplifyDouglasPeucker(points : ~[Point], sqTolerance : float, hq:bool) -
 		};
 	};
 	markers.each_key(|j|{
-		newPoints.push(pts[*j]);
+		newPoints.push(points[*j]);
 		true
 	});
-	return newPoints;
+	newPoints
+}
+
+pub fn simplify(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
+	let tolerance : float = sqTolerance*sqTolerance;
+	let pts:~[Point]=match hq {
+		true=>points,
+		_=>simplifyRadialDistance(points,tolerance)
+	};
+	simplifyDouglasPeucker(pts,tolerance)
 }
