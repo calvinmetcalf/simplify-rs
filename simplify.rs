@@ -1,7 +1,7 @@
 #[link(name = "simplify", vers = "0.0.4")];
-extern mod std;
-use std::json::*;
-use std::smallintmap::*;
+extern mod extra;
+use extra::json::*;
+use extra::smallintmap::SmallIntMap;
 pub struct Point {
 	x: float,
 	y: float
@@ -27,11 +27,11 @@ impl Mul<Point,Point> for Point {
 }
 
 impl Point {
-    fn sum(&self) -> float { self.x+self.y }
-    fn sqsum(&self) -> float { self.x * self.x + self.y * self.y}
-    fn sub(&self, other: float) -> Point { Point { x:self.x - other , y:self.y - other }}
-    fn mul(&self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
-    fn add(&self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
+    fn sum(self) -> float { self.x+self.y }
+    fn sqsum(self) -> float { self.x * self.x + self.y * self.y}
+    fn sub(self, other: float) -> Point { Point { x:self.x - other , y:self.y - other }}
+    fn mul(self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
+    fn add(self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
 }
 
 fn calcStuff(p:Point,p1:Point,d1:Point)->float {
@@ -118,10 +118,9 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			break;
 		};
 	};
-	markers.each_key(|j|{
-		newPoints.push(points[*j]);
-		true
-	});
+	for (k,_) in markers.iter(){
+	    newPoints.push(points[k]);
+	}
 	newPoints
 }
 
