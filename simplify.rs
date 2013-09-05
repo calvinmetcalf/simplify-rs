@@ -118,7 +118,7 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			break;
 		};
 	};
-	for (k,_) in markers.iter(){
+	for (k,_) in markers.iter() {
 	    newPoints.push(points[k]);
 	}
 	newPoints
