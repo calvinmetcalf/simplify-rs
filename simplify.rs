@@ -1,7 +1,8 @@
-#[link(name = "simplify", vers = "0.0.4")];
+#[link(name = "simplify", vers = "0.0.5")];
 extern mod extra;
 use extra::json::*;
-use extra::smallintmap::SmallIntMap;
+use std::hashmap::HashMap;
+use std::vec;
 pub struct Point {
 	x: float,
 	y: float
@@ -62,7 +63,8 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	let mut i : uint = 1u;
 	let len : uint = points.len();
 	let mut prevPoint : Point = points[0u];
-	let mut newPoints : ~[Point] = ~[prevPoint];
+	let mut newPoints : ~[Point] = vec:: with_capacity(len);
+	newPoints.push(prevPoint);
 	let mut point : Point = points[i];
 	while i < len {
 		point = points[i];
@@ -79,12 +81,11 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 }
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
-	let mut markers = SmallIntMap::new();
+	let mut markers = HashMap::new();
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
-	let mut firstStack : ~[uint] = ~[];
-	let mut lastStack : ~[uint] = ~[];
-	let mut newPoints : ~[Point] = ~[];
+	let mut firstStack : ~[uint] = vec:: with_capacity(len);
+	let mut lastStack : ~[uint] = vec:: with_capacity(len);
 	markers.insert(first,1u);
 	markers.insert(last,1u);
 	let mut index : uint = 0;
@@ -118,10 +119,7 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			break;
 		};
 	};
-	for (k,_) in markers.iter(){
-	    newPoints.push(points[k]);
-	}
-	newPoints
+    vec::from_fn(markers.len(),|k| points[k])
 }
 
 pub fn simplify(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{

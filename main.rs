@@ -1,12 +1,12 @@
 extern mod extra;
-extern mod simplify;
-use simplify::*;
+use simplify::{Point,simplify};
 use extra::json::*;
-use extra::time::*;
+use extra::time::precise_time_ns;
 use std::path;
-use std::os;
-use std::io::*;
-use std::float;
+use std::os::args;
+use std::io::{buffered_file_writer,read_whole_file_str};
+use float_from_str = std::float::from_str;
+mod simplify;
 fn dealList(l:~[Json])->~[Point]{
     println(fmt!("from %?",l.len()));
 	l.map(|b|{
@@ -34,10 +34,10 @@ fn writeOut ( j:~[Point] , outPath:~path::Path) {
 	true;
 }
 fn main() {
-    let args : ~[~str] = os::args();
+    let args : ~[~str] = args();
 	let reader = read_whole_file_str(~path::Path(args[1]));
 	let outPath = ~path::Path(args[2]);
-	let simp = match float::from_str(args[3]){
+	let simp = match float_from_str(args[3]){
 	    Some(s)=>s,
 	    _=>1.0f
 	};
@@ -47,7 +47,7 @@ fn main() {
 		let startT :u64 = precise_time_ns();
 		let out = simplify(p,simp,false);
 		let endT : u64 =  precise_time_ns();
-		println(fmt!("time %?",endT-startT));
+		println(fmt!("time %?",(endT-startT)/1000u64));
 		 writeOut(out,outPath)
 		 }
 		Err(e)=>println(fmt!("%?",e))
