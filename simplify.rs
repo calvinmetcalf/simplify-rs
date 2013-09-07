@@ -1,7 +1,7 @@
 #[link(name = "simplify", vers = "0.0.5")];
 extern mod extra;
 use extra::json::*;
-use extra::smallintmap::SmallIntMap;
+use extra::treemap::TreeSet;
 use std::vec;
 pub struct Point {
 	x: float,
@@ -76,13 +76,13 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 }
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
-	let mut markers = SmallIntMap::new();
+	let mut markers = TreeSet::new();
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
 	let mut firstStack : ~[uint] = vec:: with_capacity(len);
 	let mut lastStack : ~[uint] = vec:: with_capacity(len);
-	markers.insert(first,1u);
-	markers.insert(last,1u);
+	markers.insert(first);
+	markers.insert(last);
 	let mut index : uint = 0;
 	loop {
 		let mut maxSqDist : float = 0.0f;
@@ -101,7 +101,7 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			i += 1;
 		}
 		if (maxSqDist > tolerance) {
-			markers.insert(index,1u);
+			markers.insert(index);
 			firstStack.push(first);
 			lastStack.push(index);
 			firstStack.push(index);
