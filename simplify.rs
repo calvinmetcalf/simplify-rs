@@ -1,7 +1,7 @@
 #[link(name = "simplify", vers = "0.0.5")];
 extern mod extra;
 use extra::json::*;
-use std::hashmap::HashMap;
+use extra::smallintmap::SmallIntMap;
 use std::vec;
 pub struct Point {
 	x: float,
@@ -61,10 +61,11 @@ fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 }
 fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
     let mut it = points.iter();
-	let mut prevPoint : Point = it.next().get();
+    it.next();
+	let mut prevPoint : Point = points[0u];
 	let mut newPoints : ~[Point] = ~[prevPoint];
-	let last : Point = points.last();
-	for point in it.filter(|point|(point - prevPoint).sqsum() > sqTolerance) {
+	let last : Point = *points.last();
+	for &point in it.filter(|&point|(point - prevPoint).sqsum() > sqTolerance) {
 			newPoints.push(point);
 			prevPoint = point;
 	}
@@ -75,7 +76,7 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 }
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
-	let mut markers = HashMap::new();
+	let mut markers = SmallIntMap::new();
 	let mut first : uint = 0u;
 	let mut last : uint = len - 1u;
 	let mut firstStack : ~[uint] = vec:: with_capacity(len);
