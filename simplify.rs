@@ -59,15 +59,18 @@ fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 	let d4 : Point = p-d2;
 	d4.sqsum()
 }
+
 fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
     let mut it = points.iter();
     it.next();
 	let mut prevPoint : Point = points[0u];
 	let mut newPoints : ~[Point] = ~[prevPoint];
-	let last : Point = *points.last();
-	for &point in it.filter(|&point|(point - prevPoint).sqsum() > sqTolerance) {
+	let &last = points.last();
+	for &point in it{
+	    if (point - prevPoint).sqsum() > sqTolerance {
 			newPoints.push(point);
 			prevPoint = point;
+		}
 	}
 	if (prevPoint!= last) {
 		newPoints.push(last);

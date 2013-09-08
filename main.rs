@@ -1,7 +1,7 @@
 extern mod extra;
 use simplify::{Point,simplify};
 use extra::json::*;
-use extra::time::precise_time_ns;
+use extra::time::precise_time_s;
 use std::path;
 use std::os::args;
 use std::io::{buffered_file_writer,read_whole_file_str};
@@ -44,10 +44,10 @@ fn main() {
 	match reader{
 		Ok(points)=> {
 		let p :~[Point] = dealJson(points);
-		let startT :u64 = precise_time_ns();
+		let startT :float = precise_time_s();
 		let out = simplify(p,simp,false);
-		let endT : u64 =  precise_time_ns();
-		println(fmt!("time %?",(endT-startT)/1000u64));
+		let endT : float =  precise_time_s();
+		println!("time {} ms",(endT-startT)*1000f);
 		 writeOut(out,outPath)
 		 }
 		Err(e)=>println(fmt!("%?",e))
