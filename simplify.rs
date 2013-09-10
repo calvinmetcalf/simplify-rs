@@ -34,7 +34,19 @@ impl Point {
     fn mul(self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
     fn add(self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
 }
-
+struct Pair(uint,uint);
+impl Pair {
+fn first(self)-> uint {
+        match self {
+            Pair(l,_)=>l
+        }
+    }
+    fn last(self)-> uint {
+        match self {
+            Pair(_,l)=>l
+        }
+    }
+}
 fn calcStuff(p:Point,p1:Point,d1:Point)->float {
 	let top : float = ((p - p1) * d1).sum();
 	let bottom : float =  d1.sqsum();
@@ -77,17 +89,19 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	newPoints
 }
+
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
 	let mut markers = TreeSet::new();
-	let mut first : uint = 0u;
-	let mut last : uint = len - 1u;
-	let mut firstStack : ~[uint] = vec:: with_capacity(len);
-	let mut lastStack : ~[uint] = vec:: with_capacity(len);
-	markers.insert(first);
-	markers.insert(last);
+	let mut pair = Pair(0u,len-1u);
+	let mut stack : ~[Pair] = ~[];
+	markers.insert(0u);
+	markers.insert(len-1u);
 	let mut index : uint = 0;
-	loop {
+
+	loop{
+			    let first = pair.first();
+	    let last = pair.last();
 		let mut maxSqDist : float = 0.0f;
 		let mut i : uint = first + 1u;
 		while (i < last) {
@@ -105,17 +119,15 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 		}
 		if (maxSqDist > tolerance) {
 			markers.insert(index);
-			firstStack.push(first);
-			lastStack.push(index);
-			firstStack.push(index);
-			lastStack.push(last);
+			stack.push(Pair(first,index));
+			stack.push(Pair(index,last));
 		}
-		if(lastStack.len()>0u){
-			first = firstStack.pop();
-			last = lastStack.pop();
-		}else{
-			break;
-		};
+		match stack.pop_opt() {
+		    Some(p)=>{
+		        pair = p;
+		    }
+		    None=>break
+		}
 	};
     vec::from_fn(markers.len(),|k| points[k])
 }
