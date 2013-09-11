@@ -8,48 +8,48 @@ pub struct Point {
 	y: float
 }
 impl ToJson for Point {
-    fn to_json(&self) -> Json { List(~[self.x.to_json(),self.y.to_json()]) }
+	fn to_json(&self) -> Json { List(~[self.x.to_json(),self.y.to_json()]) }
 }
 impl Eq for Point {
-    fn eq(&self, other: &Point) -> bool { other.x == self.x && other.y == self.y }
-    fn ne(&self, other: &Point) -> bool { other.x != self.x || other.y != self.y }
+	fn eq(&self, other: &Point) -> bool { other.x == self.x && other.y == self.y }
+	fn ne(&self, other: &Point) -> bool { other.x != self.x || other.y != self.y }
 }
 impl Sub<Point,Point> for Point {
-    #[inline]
-    fn sub(&self, other: &Point) -> Point { Point {x:self.x-other.x,y:self.y-other.y} }
+	#[inline]
+	fn sub(&self, other: &Point) -> Point { Point {x:self.x-other.x,y:self.y-other.y} }
 }
 impl Add<Point,Point> for Point {
-    #[inline]
-    fn add(&self, other: &Point) -> Point { Point { x:self.x+other.x,y:self.y+other.y }}
+	#[inline]
+	fn add(&self, other: &Point) -> Point { Point { x:self.x+other.x,y:self.y+other.y }}
 }
 impl Mul<Point,Point> for Point {
-    #[inline]
-    fn mul(&self, other: &Point) -> Point { Point { x:self.x*other.x,y:self.y*other.y }}
+	#[inline]
+	fn mul(&self, other: &Point) -> Point { Point { x:self.x*other.x,y:self.y*other.y }}
 }
 
 impl Point {
-    fn sum(self) -> float { self.x+self.y }
-    fn sqsum(self) -> float { self.x * self.x + self.y * self.y}
-    fn sub(self, other: float) -> Point { Point { x:self.x - other , y:self.y - other }}
-    fn mul(self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
-    fn add(self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
+	fn sum(self) -> float { self.x+self.y }
+	fn sqsum(self) -> float { self.x * self.x + self.y * self.y}
+	fn sub(self, other: float) -> Point { Point { x:self.x - other , y:self.y - other }}
+	fn mul(self, other: float) -> Point { Point { x:self.x * other, y:self.y * other }}
+	fn add(self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
 }
 struct Pair(uint,uint);
 enum Opt<T,U>{
-    OK(T,T,U),
-    NotOK
+	OK(T,T,U),
+	NotOK
 }
 impl Pair {
 fn first(self)-> uint {
-        match self {
-            Pair(l,_)=>l
-        }
-    }
-    fn last(self)-> uint {
-        match self {
-            Pair(_,l)=>l
-        }
-    }
+		match self {
+			Pair(l,_)=>l
+		}
+	}
+	fn last(self)-> uint {
+		match self {
+			Pair(_,l)=>l
+		}
+	}
 }
 fn calcStuff(p:Point,p1:Point,d1:Point)->float {
 	let top : float = ((p - p1) * d1).sum();
@@ -77,13 +77,13 @@ fn getSquareSegmentDistance(p: Point, p1: Point, p2: Point) -> float {
 }
 
 fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
-    let mut it = points.iter();
-    it.next();
+	let mut it = points.iter();
+	it.next();
 	let mut prevPoint : Point = points[0u];
 	let mut newPoints : ~[Point] = ~[prevPoint];
 	let &last = points.last();
 	for &point in it{
-	    if (point - prevPoint).sqsum() > sqTolerance {
+		if (point - prevPoint).sqsum() > sqTolerance {
 			newPoints.push(point);
 			prevPoint = point;
 		}
@@ -100,14 +100,14 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let mut stack : ~[Pair] = ~[];
 	markers.insert(0u);
 	markers.insert(len-1u);
-	let mut first = 0u;
-    let mut last = len-1u;
+	let mut pair = Pair(0u,len-1u);
 	loop{
-	   let mut index : uint = 0;
+		let first = pair.first();
+		let last = pair.last();
+		let mut index : uint = 0;
 		let mut maxSqDist : float = 0.0f;
 		let mut i : uint = first + 1u;
 		while (i < last) {
-			
 			let sqDist :float  = getSquareSegmentDistance(
 				points[i], 
 				points[first], 
@@ -120,19 +120,16 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			i += 1;
 		}
 		if maxSqDist > tolerance {
-			  markers.insert(index);
-			    stack.push(Pair(first,index));
-			    stack.push(Pair(index,last));
+				markers.insert(index);
+				stack.push(Pair(first,index));
+				stack.push(Pair(index,last));
 		}
-			match stack.pop_opt() {
-		    Some(Pair(f,l))=> {
-		        first = f;
-		        last = l;
-		    }
-		    None=>break
+		match stack.pop_opt() {
+			Some(p)=>pair=p,
+			None=>break
 		};
-        };
-    vec::from_fn(markers.len(),|k| points[k])
+	};
+	vec::from_fn(markers.len(),|k| points[k])
 }
 
 pub fn simplify(points : ~[Point], sqTolerance : float, hq:bool) -> ~[Point]{
