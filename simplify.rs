@@ -93,7 +93,30 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	newPoints
 }
-
+fn singlePass(pair:Pair,points :@[Point], tolerance : float) -> Opt<Pair,uint>{
+    let first = pair.first();
+	let last = pair.last();
+	let mut index : uint = 0;
+	let mut maxSqDist : float = 0.0f;
+	let mut i : uint = first + 1u;
+	while (i < last) {
+		let sqDist :float  = getSquareSegmentDistance(
+			points[i], 
+			points[first], 
+			points[last]
+		);
+		if (sqDist > maxSqDist) {
+			index = i;
+			maxSqDist = sqDist;
+		}
+		i += 1;
+	}
+	if maxSqDist > tolerance {
+	    OK(Pair(first,index),Pair(index,last),index)
+	}else{
+	    NotOK
+	}
+}
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
 	let mut markers = TreeSet::new();
@@ -102,28 +125,14 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	markers.insert(len-1u);
 	let mut pair = Pair(0u,len-1u);
 	loop{
-		let first = pair.first();
-		let last = pair.last();
-		let mut index : uint = 0;
-		let mut maxSqDist : float = 0.0f;
-		let mut i : uint = first + 1u;
-		while (i < last) {
-			let sqDist :float  = getSquareSegmentDistance(
-				points[i], 
-				points[first], 
-				points[last]
-			);
-			if (sqDist > maxSqDist) {
-				index = i;
-				maxSqDist = sqDist;
-			}
-			i += 1;
-		}
-		if maxSqDist > tolerance {
-				markers.insert(index);
-				stack.push(Pair(first,index));
-				stack.push(Pair(index,last));
-		}
+		match singlePass(pair,points,tolerance){
+		    OK(p1,p2,i)=>{
+		        markers.insert(i);
+		        stack.push(p1);
+		        stack.push(p2);
+		    }
+		    NotOk=>true
+		};
 		match stack.pop_opt() {
 			Some(p)=>pair=p,
 			None=>break
