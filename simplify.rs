@@ -35,6 +35,10 @@ impl Point {
     fn add(self, other: float) -> Point {  Point {x:self.x + other, y:self.y + other }}
 }
 struct Pair(uint,uint);
+enum Opt<T,U>{
+    OK(T,T,U),
+    NotOK
+}
 impl Pair {
 fn first(self)-> uint {
         match self {
@@ -93,15 +97,13 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len : uint = points.len();
 	let mut markers = TreeSet::new();
-	let mut pair = Pair(0u,len-1u);
 	let mut stack : ~[Pair] = ~[];
 	markers.insert(0u);
 	markers.insert(len-1u);
-	let mut index : uint = 0;
-
+	let mut first = 0u;
+    let mut last = len-1u;
 	loop{
-			    let first = pair.first();
-	    let last = pair.last();
+	   let mut index : uint = 0;
 		let mut maxSqDist : float = 0.0f;
 		let mut i : uint = first + 1u;
 		while (i < last) {
@@ -117,18 +119,19 @@ fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 			}
 			i += 1;
 		}
-		if (maxSqDist > tolerance) {
-			markers.insert(index);
-			stack.push(Pair(first,index));
-			stack.push(Pair(index,last));
+		if maxSqDist > tolerance {
+			  markers.insert(index);
+			    stack.push(Pair(first,index));
+			    stack.push(Pair(index,last));
 		}
-		match stack.pop_opt() {
-		    Some(p)=>{
-		        pair = p;
+			match stack.pop_opt() {
+		    Some(Pair(f,l))=> {
+		        first = f;
+		        last = l;
 		    }
 		    None=>break
-		}
-	};
+		};
+        };
     vec::from_fn(markers.len(),|k| points[k])
 }
 
