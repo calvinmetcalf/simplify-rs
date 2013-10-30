@@ -1,25 +1,26 @@
 extern mod extra;
 use simplify::{Point,simplify};
-use extra::json::*;
+use extra::json;
+use extra::json::ToJson;
 use extra::time::precise_time_s;
 use std::path;
 use std::os::args;
 use std::io::{buffered_file_writer,read_whole_file_str};
-use float_from_str = std::float::from_str;
+
 mod simplify;
-fn dealList(l:~[Json])->~[Point]{
+fn dealList(l:~[json::Json])->~[Point]{
     println(fmt!("from %?",l.len()));
 	l.map(|b|{
 		match *b{
-			List([Number(x),Number(y)])=>Point{x:x,y:y},
+			json::List([json::Number(x),json::Number(y)])=>Point{x:x,y:y},
 			_=>Point{x:0.0,y:0.0}
 		}
 	})
 }
 fn dealJson (s:~str)->~[Point]{
-	match from_str(s){
+	match json::from_str(s){
 		Ok(j)=> match j{
-		    List(l)=>dealList(l),
+		    json::List(l)=>dealList(l),
 		    _=>~[Point{x:0.0,y:0.0}]
 		   },
 	    _=>~[Point{x:0.0,y:0.0}]
@@ -37,10 +38,7 @@ fn main() {
     let args : ~[~str] = args();
 	let reader = read_whole_file_str(~path::Path(args[1]));
 	let outPath = ~path::Path(args[2]);
-	let simp = match float_from_str(args[3]){
-	    Some(s)=>s,
-	    _=>1.0f
-	};
+	let simp =from_str::<float>(args[3]).unwrap_or(1.0f);
 	match reader{
 		Ok(points)=> {
 		let p :~[Point] = dealJson(points);
