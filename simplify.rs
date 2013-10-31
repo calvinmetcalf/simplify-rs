@@ -1,10 +1,10 @@
 #[link(name = "simplify", vers = "0.0.6")];
 extern mod extra;
 use extra::json::Json;
+use extra::json::List;
+use extra::json::ToJson;
 use extra::treemap::TreeSet;
 use std::vec;
-use extra::arc::Arc;
-use extra::future::Future;
 #[deriving(Clone, Eq)]
 pub struct Point {
 	x: float,
@@ -80,41 +80,7 @@ fn simplifyRadialDistance(points:~[Point], sqTolerance:float) -> ~[Point]{
 	}
 	newPoints
 }
-struct retThing {
-    max_sq_dist : float,
-    first: uint,
-    second:uint,
-    index:uint
-}
-fn iterFunc (pair:Pair,pointsArc:Arc<~[Point]>)->retThing{
-    let points = pointsArc.get();
-    let first = pair.first();
-    let second = pair.second();
-    let (first_pt, second_pt) = (points[first], points[second]);
-    let mut index = 0u;
-    let mut max_sq_dist = 0.0f64;
-    let i = first + 1u;
-    for (i, &point_i) in points.slice_from(i)
-        .iter()
-        .enumerate()
-        .map(|(new_i, point)| (i + new_i, point))
-        .take_while(|&(i, _)| i < second) {
-        let sq_dist = getSquareSegmentDistance(point_i, first_pt, second_pt);
-        if (sq_dist > max_sq_dist) {
-            index = i;
-            max_sq_dist = sq_dist;
-        }
-    }
-    return retThing{
-        max_sq_dist:max_sq_dist,
-        first:first,
-        second:second,
-        index:index
-    }
-}
-fn simplifyDouglasPeucker(opoints : ~[Point], tolerance : float) -> ~[Point]{
-    let arcPoints = Arc::new(opoints);
-	let points = arcPoints.get();
+fn simplifyDouglasPeucker(points : ~[Point], tolerance : float) -> ~[Point]{
 	let len = points.len();
 	let mut markers = TreeSet::new();
 	let mut stack : ~[Pair] = ~[];
@@ -122,12 +88,27 @@ fn simplifyDouglasPeucker(opoints : ~[Point], tolerance : float) -> ~[Point]{
 	markers.insert(len-1u);
 	let mut pair:Pair = (0u,len-1u);
 	loop {
-        let mut prelimrslt = Future::spawn(|| iterFunc(pair,arcPoints.clone()));
-        let rslt = prelimrslt.get();
-        if rslt.max_sq_dist > tolerance {
-            markers.insert(rslt.index);
-            stack.push((rslt.first,rslt.index));
-            stack.push((rslt.index,rslt.second));
+        let first = pair.first();
+        let second = pair.second();
+        let (first_pt, second_pt) = (points[first], points[second]);
+        let mut index = 0u;
+        let mut max_sq_dist = 0.0f;
+        let i = first + 1u;
+        for (i, &point_i) in points.slice_from(i)
+            .iter()
+            .enumerate()
+            .map(|(new_i, point)| (i + new_i, point))
+            .take_while(|&(i, _)| i < second) {
+            let sq_dist = getSquareSegmentDistance(point_i, first_pt, second_pt);
+            if (sq_dist > max_sq_dist) {
+                index = i;
+                max_sq_dist = sq_dist;
+            }
+        }
+        if max_sq_dist > tolerance {
+            markers.insert(index);
+            stack.push((first,index));
+            stack.push((index,second));
         }
         match stack.pop_opt() {
             Some(p)=>pair=p,
